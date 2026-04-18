@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container profile-wrapper">
+
+    <div class="profile-card">
+
+        <!-- Avatar -->
+        <div class="profile-avatar">
+            {{ user[1][0]|upper }}
+        </div>
+
+        <!-- Name -->
+        <h3 class="profile-name">{{ user[1] }}</h3>
+
+        <!-- Info -->
+        <div class="profile-info">
+            <p><strong>Email:</strong> {{ user[2] }}</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="profile-actions">
+
+            <a href="/edit_profile" class="btn profile-btn-primary">
+                Edit Profile
+            </a>
+
+            <a href="/delete_account" class="btn profile-btn-danger">
+                Delete Account
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

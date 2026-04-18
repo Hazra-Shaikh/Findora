@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Lost & Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar main-navbar">
+
+        <div class="container navbar-container">
+
+            <!-- LOGO -->
+            <a href="/" class="navbar-brand logo-text">
+                Findora
+            </a>
+            <!-- Hamburger -->
+            <button class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- RIGHT SIDE -->
+            <div class="nav-right " id="navMenu">
+
+                {% if session.get('user_id') %}
+
+                <!-- SEARCH -->
+                <form method="GET" action="/" class="search-form me-3">
+                    <input type="text" name="search" class="search-input" placeholder="Search items...">
+                </form>
+
+                <!-- ACTION BUTTONS -->
+                <a href="/dashboard" class="nav-btn">Dashboard</a>
+                <a href="/post" class="nav-btn">Post</a>
+
+                <!-- Admin -->
+                {% if session.get('role') == 'admin' %}
+                <a href="/admin" class="nav-btn">Admin</a>
+                {% endif %}
+
+                <!-- PROFILE -->
+                <div class="profile-section dropdown ms-3">
+
+                    <button class="profile-btn dropdown-toggle" data-bs-toggle="dropdown">
+
+                        <div class="profile-circle">
+                            {{ current_user[0]|upper if current_user else 'U' }}
+                        </div>
+
+                        <span class="profile-name">
+                            {{ current_user if current_user else 'User' }}
+                        </span>
+
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
+
+                        <li><a class="dropdown-item" href="/profile">My Profile</a></li>
+                        <li><a class="dropdown-item" href="/edit_profile">Edit Profile</a></li>
+                        <li><a class="dropdown-item text-danger" href="/delete_account">Delete Account</a></li>
+                        <li>
+                            <hr>
+                        </li>
+                        <li><a class="dropdown-item" href="/logout">Logout</a></li>
+
+                    </ul>
+
+                </div>
+
+                {% else %}
+
+                <a href="/login" class="nav-btn">Login</a>
+                <a href="/signup" class="nav-btn">Signup</a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+    </nav>
+
+    <!-- FLASH -->
+    <div class="container flash-container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endwith %}
+    </div>
+
+    <!-- CONTENT -->
+    {% block content %}{% endblock %}
+
+    <!-- Auto close alerts -->
+    <script>
+        setTimeout(() => {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => alert.remove());
+        }, 3000);
+    </script>
+
+    <!-- bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- toggle menu -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const hamburger = document.querySelector(".hamburger");
+            const menu = document.getElementById("navMenu");
+
+            hamburger.addEventListener("click", function () {
+                menu.classList.toggle("active");
+            });
+        });
+    </script>
+</body>
+
+</html>

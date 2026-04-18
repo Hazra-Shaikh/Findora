@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+
+{% if not session.get('user_id') %}
+
+  <div class="landing-page">
+
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+
+      <img src="{{ url_for('static', filename='images/images.jpg') }}" class="hero-img">
+
+      <div class="hero-overlay">
+        <h1>XYZ College's <br>Lost & Found Portal</h1>
+        <p>Secure. Simple. Campus-wide solution.</p>
+        <a href="/login" class="btn hero-btn">Get Started</a>
+      </div>
+
+    </div>
+
+    <div class=" container index-wrapper">
+      <!-- HOW IT WORKS -->
+      <section class="how-section container">
+
+        <h2>How It Works</h2>
+
+        <div class="row text-center mt-4">
+
+          <div class="col-md-4">
+            <h5>1. Post Item</h5>
+            <p>Report lost or found items with details and location.</p>
+          </div>
+
+          <div class="col-md-4">
+            <h5>2. Claim Item</h5>
+            <p>Users can claim items with verification message.</p>
+          </div>
+
+          <div class="col-md-4">
+            <h5>3. Get It Back</h5>
+            <p>Owner verifies and returns the item safely.</p>
+          </div>
+
+        </div>
+
+      </section><br>
+
+
+      <!-- INFO SECTION -->
+      <section class="info-section container">
+
+        <p>
+          Our College Lost & Found Portal is designed to simplify the process of reconnecting lost items with their
+          rightful owners. With a user-friendly interface and secure claim verification, students can easily report and
+          recover belongings.
+        </p>
+
+        <p>
+          The system ensures transparency and safety by allowing only verified users to interact, while maintaining
+          privacy through controlled contact sharing. It promotes a responsible and helpful campus environment.
+        </p>
+
+      </section><br>
+
+
+      <!-- TESTIMONIALS -->
+      <section class="testimonial-section">
+
+        <h2>What Students Say</h2>
+
+        <div class="testimonial-container">
+
+          <div class="testimonial-card">
+            <p>"I found my lost wallet within a day! Super helpful platform."</p>
+            <h6>- Aditi, CS Dept</h6>
+          </div>
+
+          <div class="testimonial-card">
+            <p>"Easy to use and very reliable. Loved the experience."</p>
+            <h6>- Rahul, Mechanical</h6>
+          </div>
+
+          <div class="testimonial-card">
+            <p>"Great initiative for students. Makes campus safer."</p>
+            <h6>- Sana, IT Dept</h6>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- FOOTER -->
+      <footer class="landing-footer">
+        <div class="footer-content">
+          <p>© 2026 College Lost & Found Portal</p>
+          <p>Built with ❤️ for students, By Hazra Shaikh</p>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+
+{% else %}
+
+
+<div class="container mt-4">
+  <h3 class="index-title">Latest Items</h3>
+  <div class="row g-4">
+
+    {% for item in items %}
+    <div class="col-lg-3 col-md-4 col-sm-6">
+
+      <a href="/item/{{ item[0] }}" class="item-link">
+
+        <div class="card item-card position-relative">
+
+          {% if item[11] %}
+          <span class="returned-badge">Returned</span>
+          {% endif %}
+
+          {% if item[5] %}
+          <img src="{{ url_for('uploaded_file', filename=item[5]) }}" class="card-img-top item-image">
+          {% else %}
+          <div class="no-image">No Image</div>
+          {% endif %}
+
+          <div class="card-body">
+            <h5 class="item-title">{{ item[1] }}</h5>
+
+            <p class="item-desc">{{ item[2] }}</p>
+
+            <p class="item-category">
+              <strong>Category:</strong> {{ item[3] }}
+            </p>
+
+            <p class="item-location text-muted">
+              📍 {{ item[4][:40] }}...
+            </p>
+
+            <span class="badge 
+            {% if item[6] == 'lost' %}bg-danger{% else %}bg-success{% endif %}
+            item-type-badge">
+
+              {{ item[6] | capitalize }}
+
+            </span>
+
+
+
+          </div>
+        </div>
+      </a>
+
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+{% endif %}
+
+</div>
+
+{% endblock %}

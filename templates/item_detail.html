@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container detail-wrapper">
+
+  <div class="container mt-4">
+
+    <!-- RETURNED BADGE -->
+    {% if item[11] %}
+    <span class="returned-badge">Returned</span>
+    {% endif %}
+
+    <div id="carouselExample" class="carousel slide">
+
+      <div class="carousel-inner">
+
+        <!-- ALWAYS SHOW MAIN IMAGE FIRST -->
+        {% if item[5] %}
+        <div class="carousel-item active">
+          <img src="{{ url_for('uploaded_file', filename=item[5]) }}" class="d-block w-100 detail-image">
+        </div>
+        {% endif %}
+
+        <!-- OTHER IMAGES -->
+        {% for img in images %}
+        {% if img[2] != item[5] %}
+        <div class="carousel-item">
+          <img src="{{ url_for('uploaded_file', filename=img[2]) }}" class="d-block w-100 detail-image">
+        </div>
+        {% endif %}
+        {% endfor %}
+
+      </div>
+
+      <!-- CONTROLS -->
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+      </button>
+
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+      </button>
+
+    </div>
+
+  </div>
+  <!-- DETAILS -->
+  <div class="col-md-6 detail-info-section">
+
+    <h2 class="detail-title">{{ item[1] }}</h2>
+
+    {% if item[11] %}
+    <span class="returned-badge">Returned</span>
+    {% endif %}
+
+    <p class="detail-desc">{{ item[2] }}</p>
+
+    <p class="detail-category">
+      <strong>Category:</strong> {{ item[3] }}
+    </p>
+
+    <!-- Area -->
+    <div class="detail-place">
+
+      <p><strong>Place:</strong>
+        {{ item[9] }}
+        {% if item[10] %}
+        ({{ item[10] }})
+        {% endif %}
+      </p>
+
+    </div>
+
+    <!-- LOCATION -->
+    <div class="detail-location">
+
+      <p class="mb-1"><strong>Location:</strong></p>
+
+      <p class="location-text">
+        📍 {{ item[4] }}
+      </p>
+
+      <a href="https://www.google.com/maps?q={{ item[4] }}" target="_blank" class="btn location-map-btn">
+        View on Map
+      </a>
+
+    </div>
+
+    <!-- CONTACT -->
+    <div class="detail-contact mt-3">
+
+      <p><strong>Contact:</strong></p>
+
+      <p class="contact-text">
+        {% if item_owner or claim_accepted %}
+        {{ item[8] }}
+        {% else %}
+        {{ item[8][:5] }}*****
+        {% endif %}
+      </p>
+
+    </div>
+    <br>
+    <!-- Type Lost/Found -->
+
+    <div class="item-type-badge">
+      {% if item[6] == 'lost' %}
+      <span class="badge bg-danger">Lost</span>
+      {% else %}
+      <span class="badge bg-success">Found</span>
+      {% endif %}
+    </div><br>
+
+    <!-- ACTION -->
+
+    {% if not item[11] and session.get('user_id') %}
+
+    <form method="POST" action="/claim/{{ item[0] }}">
+
+      <textarea name="message" class="form-control mb-2"
+        placeholder="Describe the item to verify ownership (color, brand, unique marks)" required></textarea>
+
+      <button class="btn claim-btn">Claim Item</button>
+
+    </form>
+
+    {% endif %}
+
+  </div>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container admin-wrapper">
+
+    <h2 class="admin-title">Admin Dashboard</h2>
+
+    <!-- ITEMS SECTION -->
+    <div class="admin-section">
+
+        <h4 class="section-title">All Items</h4>
+
+        <div class="table-responsive">
+            <table class="table admin-table">
+
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Posted By</th>
+                        <th>Type</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <a href="/item/{{ item[0] }}" class="table-link">
+                                {{ item[1] }}
+                            </a>
+                        </td>
+
+                        <td>{{ item[12] }}</td>
+
+                        <td>
+                            {% if item[6] == 'lost' %}
+                            <span class="badge lost-badge">Lost</span>
+                            {% else %}
+                            <span class="badge found-badge">Found</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a href="/delete_item/{{ item[0] }}" class="btn btn-sm admin-delete-btn"
+                                onclick="return confirm('Delete this item?')">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+    <!-- CLAIMS SECTION -->
+    <div class="admin-section mt-4">
+
+        <h4 class="section-title">All Claims</h4>
+
+        <div class="table-responsive">
+            <table class="table admin-table">
+
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Claimed By</th>
+                        <th>Message</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for c in claims %}
+                    <tr>
+
+                        <td>
+                            <a href="/item/{{ c[1] }}" class="table-link">
+                                {{ c[6] }}
+                            </a>
+                        </td>
+
+                        <td>{{ c[5] }}</td>
+
+                        <td class="claim-msg">{{ c[4] }}</td>
+
+                        <td>
+
+                            {% if c[7] %}
+                            <span class="badge status-returned">Returned</span>
+
+                            {% elif c[3] == 'accepted' %}
+                            <span class="badge status-accepted">Accepted</span>
+
+                            {% elif c[3] == 'rejected' %}
+                            <span class="badge status-rejected">Rejected</span>
+
+                            {% else %}
+                            <span class="badge status-pending">Pending</span>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

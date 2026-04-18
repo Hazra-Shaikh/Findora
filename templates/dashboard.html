@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container dashboard-wrapper">
+
+    <h2 class="dashboard-title">My Dashboard</h2>
+
+    <!-- MY ITEMS -->
+    <div class="dashboard-section">
+
+        <h4>My Items</h4>
+
+        <div class="row">
+
+            {% for item in my_items %}
+            <div class="col-md-4 mb-3">
+
+                <div class="card dashboard-card">
+
+                    <div class="card-body">
+                        <h5>{{ item[1] }}</h5>
+
+                        <a href="/delete_item/{{ item[0] }}" class="btn btn-sm btn-danger mt-2">
+                            Delete
+                        </a>
+                        {% if not item[11] %}
+                        <a href="/mark_returned/{{ item[0] }}" class="btn btn-success btn-sm mt-2">
+                            Mark as Returned
+                        </a>
+                        {% else %}
+                        <span class="badge bg-success mt-2">Returned</span>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <!-- CLAIMS -->
+    <div class="dashboard-section mt-4">
+
+        <h4>Claims</h4>
+
+        <div class="table-responsive">
+
+            <table class="table dashboard-table">
+
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for c in claims %}
+                    <tr>
+                        <td>{{ c[1] }}</td>
+                        <td>{{ c[2] }}</td>
+                        <td>{{ c[3] }}</td>
+
+                        <!-- ACTION -->
+                        <td>
+                            <a href="/update_claim/{{ c[0] }}/accepted" class="btn btn-success btn-sm">Accept</a>
+                            <a href="/update_claim/{{ c[0] }}/rejected" class="btn btn-danger btn-sm">Reject</a>
+                        </td>
+
+                        <!-- MESSAGE -->
+                        <td>{{ c[4] }}</td>
+
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

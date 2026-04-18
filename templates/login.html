@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="auth-wrapper">
+
+    <div class="auth-card">
+
+        <h2 class="auth-title">Login</h2>
+
+        <form method="POST" class="auth-form">
+
+            <input type="email" name="email" class="form-control auth-input" placeholder="Email" required>
+
+            <input type="password" name="password" class="form-control auth-input" placeholder="Password" required>
+
+            <button class="auth-btn w-100 ">Login</button>
+
+        </form>
+
+        <p class="auth-switch">
+            Don’t have an account?
+            <a href="/signup">Signup</a>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

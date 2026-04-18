@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<div class="container post-wrapper">
+
+    <div class="post-card">
+
+        <h2 class="post-title">Post Lost / Found Item</h2>
+
+        <form method="POST" enctype="multipart/form-data" class="post-form">
+
+            <input type="text" name="title" class="form-control post-input" placeholder="Item Title" required>
+
+            <textarea name="description" class="form-control post-input" placeholder="Description"></textarea>
+
+            <input type="text" name="category" class="form-control post-input" placeholder="Category">
+
+            <label class="form-label">Place (Campus Area)</label>
+
+            <select name="place" id="place" class="form-control post-input" onchange="handlePlace()">
+                <option value="">Select Area</option>
+                <option value="Hostel">Hostel</option>
+                <option value="Lab">Lab</option>
+                <option value="Library">Library</option>
+                <option value="Canteen">Canteen</option>
+            </select>
+
+            <!-- EXTRA INPUT -->
+            <div id="extraInput"></div>
+
+            <button type="button" class="btn location-btn" onclick="getLocation()">
+                Use My Location 📍
+            </button><br><br>
+
+            <input type="text" name="location" id="location" class="form-control post-input" readonly
+                placeholder="Select location">
+
+            <div id="map" class="map-box"></div>
+
+            <select name="type" class="form-control post-input">
+                <option value="lost">Lost</option>
+                <option value="found">Found</option>
+            </select>
+
+            <input type="text" name="contact" class="form-control post-input" placeholder="Contact Number" required>
+
+            <input type="file" name="images" multiple><br><br>
+
+            <button class="btn post-btn">Submit</button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    var map = L.map('map').setView([18.5204, 73.8567], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    var marker;
+
+    map.on('click', function (e) {
+        if (marker) { map.removeLayer(marker); }
+        marker = L.marker(e.latlng).addTo(map);
+        getAddress(e.latlng.lat, e.latlng.lng);
+    });
+
+    function getLocation() {
+        navigator.geolocation.getCurrentPosition(pos => {
+            let lat = pos.coords.latitude;
+            let lng = pos.coords.longitude;
+
+            if (marker) { map.removeLayer(marker); }
+            marker = L.marker([lat, lng]).addTo(map);
+            map.setView([lat, lng], 15);
+
+            getAddress(lat, lng);
+        });
+    }
+
+    function getAddress(lat, lng) {
+        document.getElementById("location").value = "Fetching address...";
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("location").value = data.display_name;
+            })
+            .catch(() => {
+                document.getElementById("location").value = lat + "," + lng;
+            });
+    }
+</script>
+
+<script>
+    function handlePlace() {
+        let place = document.getElementById("place").value;
+        let extra = document.getElementById("extraInput");
+
+        if (place === "Hostel") {
+            extra.innerHTML = `
+        <select name="hostel_type" class="form-control post-input">
+            <option>Boys Hostel</option>
+            <option>Girls Hostel</option>
+        </select>`;
+        }
+        else if (place === "Lab") {
+            extra.innerHTML = `
+        <textarea name="lab_block" class="form-control post-input" 
+        placeholder="Enter Lab Block (e.g. Block A, Room 203)"></textarea>`;
+        }
+        else {
+            extra.innerHTML = "";
+        }
+    }
+</script>
+
+{% endblock %}
