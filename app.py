@@ -9,8 +9,11 @@ app = Flask(__name__)
 app.secret_key = "secret123"
 
 # DB
-conn = sqlite3.connect('database.db', check_same_thread=False)
-cursor = conn.cursor()
+def get_db():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
 
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -18,6 +21,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # home page
 @app.route('/')
 def home():
+
+    conn = get_db()
+    cursor = conn.cursor()
+
     if 'user_id' in session:
         search = request.args.get('search')
 
@@ -32,6 +39,8 @@ def home():
     else:
         items = []
 
+    conn.close()
+
     return render_template('index.html', items=items)
 
 # sign-up page
@@ -39,11 +48,14 @@ def home():
 def signup():
     if request.method == 'POST':
         hashed_password = generate_password_hash(request.form['password'])
+        conn = get_db()
+        cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO users (name,email,password) VALUES (?,?,?)",
             (request.form['name'], request.form['email'],hashed_password)
         )
         conn.commit()
+        conn.close()
         flash("Signup successful!", "success")
         return redirect('/login')
     return render_template('signup.html')
@@ -56,6 +68,8 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
+        conn = get_db()
+        cursor = conn.cursor()
         cursor.execute(
             "SELECT * FROM users WHERE email=?",
             (email,)
@@ -84,6 +98,8 @@ def profile():
     if 'user_id' not in session:
         return redirect('/login')
 
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE id=?", (session['user_id'],))
     user = cursor.fetchone()
 
@@ -92,26 +108,68 @@ def profile():
 # edit profile
 @app.route('/edit_profile', methods=['GET','POST'])
 def edit_profile():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    conn = get_db()
+    cursor = conn.cursor()
+
     if request.method == 'POST':
+
+        name = request.form['name']
+        email = request.form['email']
+
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        cursor.execute("SELECT * FROM users WHERE id=?", (session['user_id'],))
+        user = cursor.fetchone()
+
+        # Update name/email
         cursor.execute("""
         UPDATE users SET name=?, email=? WHERE id=?
-        """, (request.form['name'], request.form['email'], session['user_id']))
-        conn.commit()
+        """, (name, email, session['user_id']))
 
-        session['user_name'] = request.form['name']  # update navbar name
+        # Password logic
+        if current_password or new_password or confirm_password:
+
+            if not check_password_hash(user['password'], current_password):
+                conn.close()
+                flash("Current password is incorrect", "danger")
+                return redirect('/edit_profile')
+
+            if new_password != confirm_password:
+                conn.close()
+                flash("Passwords do not match", "danger")
+                return redirect('/edit_profile')
+
+            hashed_password = generate_password_hash(new_password)
+            cursor.execute("""
+            UPDATE users SET password=? WHERE id=?
+            """, (hashed_password, session['user_id']))
+
+        conn.commit()
+        conn.close()
+
+        session['user_name'] = name
         flash("Profile updated!", "success")
         return redirect('/profile')
 
     cursor.execute("SELECT * FROM users WHERE id=?", (session['user_id'],))
     user = cursor.fetchone()
+    conn.close()
 
     return render_template('edit_profile.html', user=user)
 
 # delete account
 @app.route('/delete_account')
 def delete_account():
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("DELETE FROM users WHERE id=?", (session['user_id'],))
     conn.commit()
+    conn.close()
 
     session.clear()
     flash("Account deleted", "danger")
@@ -122,6 +180,8 @@ def inject_user():
     user_id = session.get('user_id')
 
     if user_id:
+        conn = get_db()
+        cursor = conn.cursor()
         cursor.execute("SELECT name FROM users WHERE id=?", (user_id,))
         user = cursor.fetchone()
 
@@ -185,6 +245,8 @@ def post_item():
         # =========================
         # 3. INSERT INTO ITEMS TABLE
         # =========================
+        conn = get_db()
+        cursor = conn.cursor()
         cursor.execute("""
         INSERT INTO items 
         (title, description, category, location, image, type, user_id, contact, place, extra_info)
@@ -215,6 +277,7 @@ def post_item():
             """, (item_id, fname))
 
         conn.commit()
+        conn.close()
 
         flash("Item posted successfully!", "success")
         return redirect('/')
@@ -225,8 +288,11 @@ def post_item():
 # for returned
 @app.route('/mark_returned/<int:item_id>')
 def mark_returned(item_id):
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("UPDATE items SET is_returned=TRUE WHERE id=?", (item_id,))
     conn.commit()
+    conn.close()
 
     flash("Item marked as returned!", "success")
     return redirect('/dashboard')
@@ -242,6 +308,8 @@ def uploaded_file(filename):
 def item_detail(item_id):
 
     # GET ITEM
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM items WHERE id=?", (item_id,))
     item = cursor.fetchone()
 
@@ -278,12 +346,15 @@ def item_detail(item_id):
 def claim_item(item_id):
     message = request.form['message']
 
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO claims (item_id, user_id, message, status)
         VALUES (?, ?, ?, 'pending')
     """, (item_id, session['user_id'], message))
 
     conn.commit()
+    conn.close()
 
     flash("Claim request sent!", "success")
     return redirect(f'/item/{item_id}')
@@ -295,6 +366,8 @@ def admin():
     if session.get('role') != 'admin':
         return "Access Denied"
 
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("""
     SELECT items.*, users.name 
     FROM items
@@ -309,6 +382,7 @@ def admin():
     JOIN items ON claims.item_id = items.id
     """)
     claims = cursor.fetchall()
+   
 
     return render_template('admin.html', items=items, claims=claims)
 
@@ -317,6 +391,8 @@ def admin():
 def dashboard():
     user_id = session['user_id']
 
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM items WHERE user_id=?", (user_id,))
     my_items = cursor.fetchall()
 
@@ -335,8 +411,11 @@ def dashboard():
 @app.route('/update_claim/<int:claim_id>/<status>')
 def update_claim(claim_id, status):
 
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("UPDATE claims SET status=? WHERE id=?", (status, claim_id))
     conn.commit()
+    conn.close()
 
     flash("Claim updated!", "info")
     return redirect('/dashboard')
@@ -344,13 +423,14 @@ def update_claim(claim_id, status):
 # delete item
 @app.route('/delete_item/<int:item_id>')
 def delete_item(item_id):
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute("DELETE FROM items WHERE id=?", (item_id,))
     conn.commit()
+    conn.close()
     flash("Deleted!", "danger")
     return redirect('/dashboard')
 
-cursor.execute("DELETE FROM items WHERE id = 1;")
-conn.commit()
 
 
 if __name__ == '__main__':
